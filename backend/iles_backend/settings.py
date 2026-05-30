@@ -141,7 +141,8 @@ ANYMAIL = {
     "MAILERSEND_API_TOKEN": config('MAILERSEND_API_TOKEN', default=''),
 }
 # Sender — set DEFAULT_FROM_EMAIL in Render env vars to your MailerSend trial address
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
+raw_email = config('DEFAULT_FROM_EMAIL', default='')
+DEFAULT_FROM_EMAIL = raw_email if '@' in raw_email else f'noreply@{raw_email}'
 
 # Frontend URL — used in password-reset emails
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
