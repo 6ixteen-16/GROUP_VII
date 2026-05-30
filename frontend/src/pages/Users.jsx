@@ -24,6 +24,7 @@ export default function Users() {
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [toggling, setToggling] = useState(null)
+  const [deleting, setDeleting] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
 
   // Route-level RoleRoute in App.jsx handles the primary redirect.
@@ -59,6 +60,18 @@ export default function Users() {
       setUsers(prev => prev.map(x => x.id === data.id ? data : x))
     } catch { alert('Failed to update user.') }
     finally { setToggling(null) }
+  }
+
+  const deleteUser = async (u) => {
+    if (!window.confirm(`Permanently delete "${u.first_name} ${u.last_name || u.username}"?\n\nThis cannot be undone and will remove all their data.`))
+      return
+    setDeleting(u.id)
+    try {
+      await api.delete(`/auth/users/${u.id}/`)
+      setUsers(prev => prev.filter(x => x.id !== u.id))
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to delete user.')
+    } finally { setDeleting(null) }
   }
 
   const handleSearch = (e) => {
@@ -169,24 +182,35 @@ export default function Users() {
                     )}
                   </td>
                   <td>
-                    {isPendingApproval(u) ? (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {isPendingApproval(u) ? (
+                        <button
+                          className="btn btn-success btn-sm"
+                          disabled={toggling === u.id}
+                          onClick={() => toggleActive(u)}
+                          title="Approve this supervisor's account"
+                        >
+                          {toggling === u.id ? '…' : 'Approve'}
+                        </button>
+                      ) : (
+                        <button
+                          className={`btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-success'}`}
+                          disabled={toggling === u.id || u.id === user.id}
+                          onClick={() => toggleActive(u)}
+                        >
+                          {toggling === u.id ? '…' : u.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                      )}
                       <button
-                        className="btn btn-success btn-sm"
-                        disabled={toggling === u.id}
-                        onClick={() => toggleActive(u)}
-                        title="Approve this supervisor's account"
+                        className="btn btn-sm"
+                        style={{ background: '#7f1d1d', color: '#fecaca', opacity: u.id === user.id ? 0.4 : 1 }}
+                        disabled={deleting === u.id || u.id === user.id}
+                        onClick={() => deleteUser(u)}
+                        title={u.id === user.id ? 'Cannot delete your own account' : 'Permanently delete this user'}
                       >
-                        {toggling === u.id ? '…' : 'Approve'}
+                        {deleting === u.id ? '…' : '🗑 Delete'}
                       </button>
-                    ) : (
-                      <button
-                        className={`btn btn-sm ${u.is_active ? 'btn-danger' : 'btn-success'}`}
-                        disabled={toggling === u.id || u.id === user.id}
-                        onClick={() => toggleActive(u)}
-                      >
-                        {toggling === u.id ? '…' : u.is_active ? 'Deactivate' : 'Activate'}
-                      </button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}

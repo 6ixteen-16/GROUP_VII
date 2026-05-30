@@ -13,6 +13,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db import models
 
 from .serializers import (
     UserSerializer, RegisterSerializer, ChangePasswordSerializer,
@@ -146,7 +147,7 @@ class UserListView(generics.ListAPIView):
         return User.objects.filter(is_active=True)
 
 
-class UserDetailView(generics.RetrieveUpdateAPIView):
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     # BUG 2 FIX: same issue as UserListView — was missing permission_classes.
     permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
@@ -156,6 +157,31 @@ class UserDetailView(generics.RetrieveUpdateAPIView):
         if user.is_staff or getattr(user, 'is_admin_user', False):
             return User.objects.all()
         return User.objects.filter(id=user.id)
+
+    def destroy(self, request, *args, **kwargs):
+        target = self.get_object()
+        requester = request.user
+
+        # Only admins/staff can delete
+        if not (requester.is_staff or getattr(requester, 'is_admin_user', False)):
+            return Response({'detail': 'Only administrators can delete users.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Prevent self-deletion
+        if target.id == requester.id:
+            return Response({'detail': 'You cannot delete your own account.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent deleting the last active admin
+        if getattr(target, 'role', '') == 'admin' or target.is_staff:
+            remaining_admins = User.objects.filter(
+                is_active=True
+            ).filter(
+                models.Q(role='admin') | models.Q(is_staff=True)
+            ).exclude(id=target.id).count()
+            if remaining_admins == 0:
+                return Response({'detail': 'Cannot delete the last administrator account.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        target.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
