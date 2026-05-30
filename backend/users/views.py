@@ -186,9 +186,8 @@ def password_reset_request(request):
     if not email:
         return Response({'detail': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        user = User.objects.get(email__iexact=email)
-    except User.DoesNotExist:
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
         # Return success anyway to avoid user-enumeration
         return Response({'detail': 'If that email exists, a reset link has been sent.'})
 
