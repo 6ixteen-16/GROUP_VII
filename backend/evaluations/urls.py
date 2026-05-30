@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('criteria/', views.CriteriaListView.as_view(), name='criteria_list'),
+    path('criteria/<int:pk>/', views.CriteriaDetailView.as_view(), name='criteria_detail'),
     path('', views.EvaluationListCreateView.as_view(), name='evaluation_list'),
     path('<int:pk>/', views.EvaluationDetailView.as_view(), name='evaluation_detail'),
     path('<int:pk>/submit/', views.submit_scores, name='evaluation_submit'),

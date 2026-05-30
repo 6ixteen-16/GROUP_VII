@@ -28,6 +28,16 @@ class CriteriaListView(generics.ListCreateAPIView):
         return [IsAuthenticated()]
 
 
+class CriteriaDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Retrieve, update, or delete a single evaluation criterion. Admin only."""
+    serializer_class = EvaluationCriteriaSerializer
+    queryset = EvaluationCriteria.objects.all()
+
+    def get_permissions(self):
+        from rest_framework.permissions import IsAdminUser
+        return [IsAdminUser()]
+
+
 class EvaluationListCreateView(generics.ListCreateAPIView):
     serializer_class = EvaluationSerializer
     filter_backends = [DjangoFilterBackend]

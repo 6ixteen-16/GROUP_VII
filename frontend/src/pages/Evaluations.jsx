@@ -3,6 +3,8 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { Spinner, Badge, Modal, Alert, EmptyState, ScoreBar } from '../components/UI'
 
+const EMPTY_CRITERION = { name: '', description: '', weight: '', max_score: 100, evaluator_type: 'workplace', is_active: true }
+
 export default function Evaluations() {
   const { user } = useAuth()
   const [evaluations, setEvaluations] = useState([])
@@ -18,6 +20,15 @@ export default function Evaluations() {
   const [createForm, setCreateForm] = useState({ placement: '', student: '' })
   const [createError, setCreateError] = useState('')
   const [students, setStudents] = useState([])
+
+  // Criteria management state (admin only)
+  const [showCriteriaPanel, setShowCriteriaPanel] = useState(false)
+  const [criterionForm, setCriterionForm] = useState(EMPTY_CRITERION)
+  const [editingCriterion, setEditingCriterion] = useState(null) // null = new, id = editing
+  const [criteriaError, setCriteriaError] = useState('')
+  const [criteriaSuccess, setCriteriaSuccess] = useState('')
+  const [savingCriterion, setSavingCriterion] = useState(false)
+  const [showCriterionModal, setShowCriterionModal] = useState(false)
 
   const isStudent = user?.role === 'student'
   const isSupervisor = user?.role === 'workplace_supervisor' || user?.role === 'academic_supervisor'
@@ -92,6 +103,82 @@ export default function Evaluations() {
     } finally { setSaving(false) }
   }
 
+  // ── Criteria Management (Admin) ──────────────────────────────────────────
+
+  const openNewCriterion = () => {
+    setEditingCriterion(null)
+    setCriterionForm(EMPTY_CRITERION)
+    setCriteriaError('')
+    setCriteriaSuccess('')
+    setShowCriterionModal(true)
+  }
+
+  const openEditCriterion = (c) => {
+    setEditingCriterion(c.id)
+    setCriterionForm({
+      name: c.name,
+      description: c.description || '',
+      weight: c.weight,
+      max_score: c.max_score,
+      evaluator_type: c.evaluator_type,
+      is_active: c.is_active,
+    })
+    setCriteriaError('')
+    setCriteriaSuccess('')
+    setShowCriterionModal(true)
+  }
+
+  const saveCriterion = async (e) => {
+    e.preventDefault()
+    setCriteriaError('')
+    setSavingCriterion(true)
+    try {
+      const payload = {
+        name: criterionForm.name,
+        description: criterionForm.description,
+        weight: parseFloat(criterionForm.weight),
+        max_score: parseFloat(criterionForm.max_score),
+        evaluator_type: criterionForm.evaluator_type,
+        is_active: criterionForm.is_active,
+      }
+      if (editingCriterion) {
+        const { data } = await api.put(`/evaluations/criteria/${editingCriterion}/`, payload)
+        setCriteria(prev => prev.map(c => c.id === editingCriterion ? data : c))
+      } else {
+        const { data } = await api.post('/evaluations/criteria/', payload)
+        setCriteria(prev => [...prev, data])
+      }
+      setShowCriterionModal(false)
+      setCriteriaSuccess(editingCriterion ? 'Criterion updated successfully.' : 'Criterion added successfully.')
+      setTimeout(() => setCriteriaSuccess(''), 4000)
+    } catch (err) {
+      setCriteriaError(
+        err.response?.data?.detail ||
+        Object.values(err.response?.data || {}).flat().join(' ') ||
+        'Failed to save criterion.'
+      )
+    } finally { setSavingCriterion(false) }
+  }
+
+  const toggleCriterionActive = async (c) => {
+    try {
+      const { data } = await api.patch(`/evaluations/criteria/${c.id}/`, { is_active: !c.is_active })
+      setCriteria(prev => prev.map(x => x.id === c.id ? data : x))
+    } catch {
+      alert('Failed to update criterion status.')
+    }
+  }
+
+  const deleteCriterion = async (c) => {
+    if (!window.confirm(`Delete "${c.name}"? This cannot be undone.`)) return
+    try {
+      await api.delete(`/evaluations/criteria/${c.id}/`)
+      setCriteria(prev => prev.filter(x => x.id !== c.id))
+    } catch {
+      alert('Failed to delete criterion.')
+    }
+  }
+
   const myCriteria = criteria.filter(c => c.is_active && (isAdmin || c.evaluator_type === myType))
 
   return (
@@ -101,12 +188,94 @@ export default function Evaluations() {
           <h1>Evaluations</h1>
           <p className="text-secondary">Performance scores and grades</p>
         </div>
-        {isSupervisor && (
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ New Evaluation</button>
-        )}
+        <div style={{ display: 'flex', gap: 10 }}>
+          {isAdmin && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowCriteriaPanel(v => !v)}
+            >
+              ⚙ {showCriteriaPanel ? 'Hide' : 'Manage'} Criteria
+            </button>
+          )}
+          {isSupervisor && (
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ New Evaluation</button>
+          )}
+        </div>
       </div>
 
       {error && <Alert type="error">{error}</Alert>}
+
+      {/* ── Admin: Evaluation Criteria Panel ── */}
+      {isAdmin && showCriteriaPanel && (
+        <div className="card" style={{ marginBottom: 24 }}>
+          <div className="card-header">
+            <h3 className="card-title">Evaluation Criteria</h3>
+            <button className="btn btn-primary btn-sm" onClick={openNewCriterion}>+ Add Criterion</button>
+          </div>
+
+          {criteriaSuccess && (
+            <div style={{ padding: '0 20px' }}>
+              <Alert type="success">{criteriaSuccess}</Alert>
+            </div>
+          )}
+
+          {criteria.length === 0 ? (
+            <div className="card-body">
+              <p className="text-secondary text-sm">No evaluation criteria defined yet. Add some so supervisors can score students.</p>
+            </div>
+          ) : (
+            <div className="table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Evaluator Type</th>
+                    <th>Weight (%)</th>
+                    <th>Max Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {criteria.map(c => (
+                    <tr key={c.id} style={{ opacity: c.is_active ? 1 : 0.55 }}>
+                      <td>
+                        <strong>{c.name}</strong>
+                        {c.description && <p className="text-muted text-sm" style={{ margin: 0 }}>{c.description}</p>}
+                      </td>
+                      <td>
+                        <span className={`badge ${c.evaluator_type === 'workplace' ? 'badge-active' : 'badge-submitted'}`}>
+                          {c.evaluator_type_display}
+                        </span>
+                      </td>
+                      <td>{c.weight}%</td>
+                      <td>{c.max_score}</td>
+                      <td>
+                        <button
+                          className={`badge ${c.is_active ? 'badge-approved' : 'badge-draft'}`}
+                          style={{ cursor: 'pointer', border: 'none', background: 'none' }}
+                          title={c.is_active ? 'Click to deactivate' : 'Click to activate'}
+                          onClick={() => toggleCriterionActive(c)}
+                        >
+                          {c.is_active ? 'Active' : 'Inactive'}
+                        </button>
+                      </td>
+                      <td style={{ display: 'flex', gap: 6 }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => openEditCriterion(c)}>Edit</button>
+                        <button
+                          className="btn btn-sm"
+                          style={{ background: 'var(--danger, #ef4444)', color: '#fff' }}
+                          onClick={() => deleteCriterion(c)}
+                        >Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? <Spinner /> : evaluations.length === 0 ? (
         <EmptyState
@@ -202,7 +371,7 @@ export default function Evaluations() {
               <hr className="divider" />
 
               {myCriteria.length === 0 && !showScore.is_submitted && (
-                <Alert type="warning">No evaluation criteria configured. Contact the administrator to set up criteria.</Alert>
+                <Alert type="warning">No evaluation criteria configured. Use the "Manage Criteria" button above to set up criteria.</Alert>
               )}
 
               {(showScore.is_submitted ? showScore.criteria_scores : myCriteria).map(item => {
@@ -255,6 +424,99 @@ export default function Evaluations() {
             </div>
           </>
         )}
+      </Modal>
+
+      {/* Add / Edit Criterion Modal */}
+      <Modal
+        open={showCriterionModal}
+        onClose={() => setShowCriterionModal(false)}
+        title={editingCriterion ? 'Edit Criterion' : 'Add Evaluation Criterion'}
+      >
+        <form onSubmit={saveCriterion}>
+          <div className="modal-body">
+            {criteriaError && <Alert type="error">{criteriaError}</Alert>}
+
+            <div className="form-group">
+              <label>Criterion Name *</label>
+              <input
+                type="text"
+                value={criterionForm.name}
+                onChange={e => setCriterionForm({ ...criterionForm, name: e.target.value })}
+                placeholder="e.g. Punctuality, Technical Skills"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Description</label>
+              <textarea
+                value={criterionForm.description}
+                onChange={e => setCriterionForm({ ...criterionForm, description: e.target.value })}
+                rows={2}
+                placeholder="Brief description of what this criterion measures…"
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div className="form-group">
+                <label>Weight (%) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  value={criterionForm.weight}
+                  onChange={e => setCriterionForm({ ...criterionForm, weight: e.target.value })}
+                  placeholder="e.g. 40"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Max Score *</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={criterionForm.max_score}
+                  onChange={e => setCriterionForm({ ...criterionForm, max_score: e.target.value })}
+                  placeholder="e.g. 100"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Evaluator Type *</label>
+              <select
+                value={criterionForm.evaluator_type}
+                onChange={e => setCriterionForm({ ...criterionForm, evaluator_type: e.target.value })}
+                required
+              >
+                <option value="workplace">Workplace Supervisor</option>
+                <option value="academic">Academic Supervisor</option>
+              </select>
+            </div>
+
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input
+                type="checkbox"
+                id="criterion-active"
+                checked={criterionForm.is_active}
+                onChange={e => setCriterionForm({ ...criterionForm, is_active: e.target.checked })}
+                style={{ width: 'auto', margin: 0 }}
+              />
+              <label htmlFor="criterion-active" style={{ marginBottom: 0, cursor: 'pointer' }}>
+                Active (visible to evaluators)
+              </label>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={() => setShowCriterionModal(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={savingCriterion}>
+              {savingCriterion ? 'Saving…' : editingCriterion ? 'Save Changes' : 'Add Criterion'}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   )
