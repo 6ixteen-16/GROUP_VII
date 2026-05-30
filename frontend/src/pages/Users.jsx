@@ -3,6 +3,7 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import { Spinner, Badge, Alert, EmptyState } from '../components/UI'
 import CreateUserModal from '../components/CreateUserModal'
+import EditUserModal from '../components/EditUserModal'
 
 const ROLE_LABELS = {
   student: 'Student Intern',
@@ -26,6 +27,7 @@ export default function Users() {
   const [toggling, setToggling] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [editingUser, setEditingUser] = useState(null)
 
   // Route-level RoleRoute in App.jsx handles the primary redirect.
   // This is a secondary safety net for edge-cases (e.g. role changed mid-session).
@@ -117,6 +119,14 @@ export default function Users() {
         />
       )}
 
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => setEditingUser(null)}
+          onSuccess={() => { setEditingUser(null); load(); }}
+        />
+      )}
+
       <div className="filters-bar">
         <select value={filterRole} onChange={e => setFilterRole(e.target.value)} style={{ maxWidth: 200 }}>
           <option value="">All Roles</option>
@@ -201,6 +211,12 @@ export default function Users() {
                           {toggling === u.id ? '…' : u.is_active ? 'Deactivate' : 'Activate'}
                         </button>
                       )}
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setEditingUser(u)}
+                      >
+                        Edit
+                      </button>
                       <button
                         className="btn btn-sm"
                         style={{ background: '#7f1d1d', color: '#fecaca', opacity: u.id === user.id ? 0.4 : 1 }}
