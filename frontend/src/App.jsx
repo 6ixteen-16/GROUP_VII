@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Sidebar from './components/Sidebar'
@@ -22,12 +23,21 @@ const PAGE_TITLES = {
   '/profile': 'My Profile',
 }
 
-function Topbar() {
+function Topbar({ toggleSidebar }) {
   const location = useLocation()
   const title = PAGE_TITLES[location.pathname] || 'ILES'
   return (
     <header className="topbar">
-      <span className="topbar-title">{title}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button className="mobile-menu-btn" onClick={toggleSidebar} aria-label="Toggle menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <span className="topbar-title">{title}</span>
+      </div>
       <div className="topbar-right">
         <span className="text-secondary text-sm">Makerere University</span>
       </div>
@@ -49,11 +59,22 @@ function ProtectedRoute({ children }) {
 }
 
 function AppLayout({ children }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const location = useLocation()
+
+  // Close sidebar on route change on mobile
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location])
+
   return (
     <div className="app-layout">
-      <Sidebar />
+      {sidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
+      )}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="main-content">
-        <Topbar />
+        <Topbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <main className="page-body">{children}</main>
       </div>
     </div>

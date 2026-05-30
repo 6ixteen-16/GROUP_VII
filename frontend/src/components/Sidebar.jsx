@@ -60,7 +60,7 @@ const ROLE_LABELS = {
   admin: 'Administrator',
 }
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth()
   const initials = user
     ? ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || user.username?.[0]?.toUpperCase()
@@ -78,10 +78,18 @@ export default function Sidebar() {
   const visible = navItems.filter(item => item.roles.includes(user?.role))
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
-        <h2>ILES</h2>
-        <span>Internship Logging & Evaluation</span>
+        <div>
+          <h2>ILES</h2>
+          <span>Internship Logging & Evaluation</span>
+        </div>
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       <nav className="sidebar-nav">
