@@ -217,11 +217,18 @@ def password_reset_request(request):
             fail_silently=False,
         )
     except Exception as smtp_error:
-        return Response(
-            {'detail': f'Email could not be sent: {str(smtp_error)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-    return Response({'detail': 'If that email exists, a reset link has been sent.'})
+        # On Render Free Tier, SMTP is blocked. Return the link directly in the API response
+        # so the frontend can show it to the user as a demo workaround.
+        return Response({
+            'detail': 'Email sending is disabled on this free server.',
+            'reset_link': reset_link
+        })
+    
+    # Even if console backend succeeds, we'll return the link for demo purposes
+    return Response({
+        'detail': 'If that email exists, a reset link has been sent.',
+        'reset_link': reset_link
+    })
 
 
 @api_view(['POST'])
