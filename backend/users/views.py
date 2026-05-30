@@ -192,26 +192,35 @@ def password_reset_request(request):
         # Return success anyway to avoid user-enumeration
         return Response({'detail': 'If that email exists, a reset link has been sent.'})
 
+    if not user.email:
+        return Response({'detail': 'No email address is on file for this account.'}, status=status.HTTP_400_BAD_REQUEST)
+
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
     reset_link = f"{frontend_url}/reset-password/{uid}/{token}"
 
-    send_mail(
-        subject='ILES — Password Reset Request',
-        message=(
-            f'Hello {user.get_full_name() or user.username},\n\n'
-            f'You requested a password reset for your ILES account.\n'
-            f'Click the link below to set a new password:\n\n'
-            f'{reset_link}\n\n'
-            f'This link expires in 24 hours.\n'
-            f'If you did not request this, please ignore this email.\n\n'
-            f'— ILES Team'
-        ),
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list=[user.email],
-        fail_silently=False,
-    )
+    try:
+        send_mail(
+            subject='ILES - Password Reset Request',
+            message=(
+                f'Hello {user.get_full_name() or user.username},\n\n'
+                f'You requested a password reset for your ILES account.\n'
+                f'Click the link below to set a new password:\n\n'
+                f'{reset_link}\n\n'
+                f'This link expires in 24 hours.\n'
+                f'If you did not request this, please ignore this email.\n\n'
+                f'- ILES Team'
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+    except Exception as smtp_error:
+        return Response(
+            {'detail': f'Email could not be sent: {str(smtp_error)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     return Response({'detail': 'If that email exists, a reset link has been sent.'})
 
 
