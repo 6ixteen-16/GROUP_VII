@@ -135,13 +135,13 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-# Email Configuration (Mailtrap HTTP API via Anymail — bypasses Render SMTP block)
-EMAIL_BACKEND = 'anymail.backends.mailtrap.EmailBackend'
+# Email: MailerSend HTTP API via Anymail (bypasses Render's SMTP block)
+EMAIL_BACKEND = 'anymail.backends.mailersend.EmailBackend'
 ANYMAIL = {
-    "MAILTRAP_API_TOKEN": config('MAILTRAP_API_TOKEN', default=''),
+    "MAILERSEND_API_TOKEN": config('MAILERSEND_API_TOKEN', default=''),
 }
-# Sender email MUST be verified in Mailtrap
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+# Sender — set DEFAULT_FROM_EMAIL in Render env vars to your MailerSend trial address
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
 
 # Frontend URL — used in password-reset emails
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

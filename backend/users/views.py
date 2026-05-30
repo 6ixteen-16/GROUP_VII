@@ -212,7 +212,7 @@ def password_reset_request(request):
                 f'If you did not request this, please ignore this email.\n\n'
                 f'- ILES Team'
             ),
-            from_email=getattr(settings, 'EMAIL_HOST_USER', None) or 'noreply@iles.app',
+            from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@iles.app',
             recipient_list=[user.email],
             fail_silently=False,
         )
