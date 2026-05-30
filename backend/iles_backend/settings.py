@@ -135,13 +135,13 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-# Email Configuration (Brevo HTTP API via Anymail)
-EMAIL_BACKEND = 'anymail.backends.sendinblue.EmailBackend'
+# Email Configuration (Mailtrap HTTP API via Anymail — bypasses Render SMTP block)
+EMAIL_BACKEND = 'anymail.backends.mailtrap.EmailBackend'
 ANYMAIL = {
-    "SENDINBLUE_API_KEY": config('BREVO_API_KEY', default=''),
+    "MAILTRAP_API_TOKEN": config('MAILTRAP_API_TOKEN', default=''),
 }
-# Sender email address MUST match the one you verify in Brevo
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='noreply@iles.app')
+# Sender email MUST be verified in Mailtrap
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 
 # Frontend URL — used in password-reset emails
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

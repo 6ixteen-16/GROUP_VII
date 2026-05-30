@@ -212,13 +212,13 @@ def password_reset_request(request):
                 f'If you did not request this, please ignore this email.\n\n'
                 f'- ILES Team'
             ),
-            from_email=getattr(settings, 'EMAIL_HOST_USER', 'noreply@iles.app') or 'noreply@iles.app',
+            from_email=getattr(settings, 'EMAIL_HOST_USER', None) or 'noreply@iles.app',
             recipient_list=[user.email],
             fail_silently=False,
         )
-    except Exception as smtp_error:
+    except Exception as e:
         return Response(
-            {'detail': f'Email could not be sent: {str(smtp_error)}'},
+            {'detail': f'Email could not be sent: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
     return Response({'detail': 'If that email exists, a reset link has been sent.'})
