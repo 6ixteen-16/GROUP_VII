@@ -1,0 +1,31 @@
+# ==========================================
+# 1. Backend Specifics (Python / Django)
+# ==========================================
+backend/venv/
+venv/
+*.pyc
+__pycache__/
+backend/__pycache__/
+
+# Databases
+backend/db.sqlite3
+db.sqlite3
+
+# Environment Secrets (Crucial for security)
+backend/.env
+.env
+
+# ==========================================
+# 2. OS & IDE Clutter
+# ==========================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ==========================================
+# 3. Frontend Specifics (React / Vite)
+# ==========================================
+frontend/node_modules/
+frontend/dist/
+frontend/.env
