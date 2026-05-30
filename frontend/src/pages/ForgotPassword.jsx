@@ -7,7 +7,6 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [resetLink, setResetLink] = useState('')
   const [error, setError] = useState('')
 
   const submit = async (e) => {
@@ -15,10 +14,7 @@ export default function ForgotPassword() {
     setError('')
     setLoading(true)
     try {
-      const response = await api.post('/auth/password-reset/', { email })
-      if (response.data?.reset_link) {
-        setResetLink(response.data.reset_link)
-      }
+      await api.post('/auth/password-reset/', { email })
       setSuccess(true)
     } catch (err) {
       const detail = err.response?.data?.detail
@@ -31,25 +27,12 @@ export default function ForgotPassword() {
   if (success) {
     return (
       <div className="auth-page">
-        <div className="auth-card" style={{ maxWidth: 460, textAlign: 'center' }}>
-          <h2 style={{ marginBottom: 8, marginTop: 16 }}>Password Reset</h2>
-          
-          {resetLink ? (
-            <div style={{ marginBottom: 24 }}>
-              <p className="text-secondary" style={{ marginBottom: 16 }}>
-                Email sending is disabled in this demo environment. Click the link below to reset your password directly:
-              </p>
-              <a href={resetLink} className="btn btn-secondary btn-block" style={{ backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '12px', whiteSpace: 'normal', wordBreak: 'break-all' }}>
-                Reset My Password
-              </a>
-            </div>
-          ) : (
-            <p className="text-secondary" style={{ marginBottom: 24 }}>
-              If an account with <strong>{email}</strong> exists, we have sent a
-              password reset link. Please check your inbox (and your spam folder).
-            </p>
-          )}
-
+        <div className="auth-card" style={{ maxWidth: 440, textAlign: 'center' }}>
+          <h2 style={{ marginBottom: 8, marginTop: 16 }}>Check Your Email</h2>
+          <p className="text-secondary" style={{ marginBottom: 24 }}>
+            If an account with <strong>{email}</strong> exists, we have sent a
+            password reset link. Please check your inbox (and your spam folder).
+          </p>
           <Link to="/login" className="btn btn-primary btn-block">
             Back to Sign In
           </Link>

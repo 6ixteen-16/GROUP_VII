@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
+    'anymail',
     # Local apps
     'users',
     'placements',
@@ -134,16 +135,13 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-# Email Configuration (for password resets)
-# Render Free Tier blocks SMTP, so we print emails to the server console logs instead
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
-EMAIL_TIMEOUT = 10
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+# Email Configuration (Brevo HTTP API via Anymail)
+EMAIL_BACKEND = 'anymail.backends.sendinblue.EmailBackend'
+ANYMAIL = {
+    "SENDINBLUE_API_KEY": config('BREVO_API_KEY', default=''),
+}
+# Sender email address MUST match the one you verify in Brevo
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='noreply@iles.app')
 
 # Frontend URL — used in password-reset emails
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

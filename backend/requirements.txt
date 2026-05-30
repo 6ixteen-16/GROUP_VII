@@ -9,3 +9,4 @@ whitenoise==6.6.0
 python-decouple==3.8
 Pillow==10.4.0
 psycopg[binary]
+django-anymail[sendinblue]==11.0.0
