@@ -4,7 +4,7 @@ ILES is a comprehensive web application designed to manage, track, and evaluate 
 
 ---
 
-## 💻 Prerequisites
+##Prerequisites
 
 Before running the application locally, ensure you have the following installed on your machine:
 - **Python 3.8+**
@@ -16,7 +16,7 @@ Before running the application locally, ensure you have the following installed 
 
 ---
 
-## 🚀 Setup & Installation Guide
+##Setup & Installation Guide
 
 ### 1. Backend Setup (Django)
 
@@ -79,11 +79,11 @@ npm run dev
 ```
 *(The frontend will now be running at http://localhost:5173)*
 
-**👉 Open http://localhost:5173 in your browser to view the application.**
+**Open http://localhost:5173 in your browser to view the application.**
 
 ---
 
-## 🔐 Login Credentials
+## Login Credentials
 
 ### Default Seed Accounts
 These accounts are automatically created when you run `python seed.py`.
@@ -120,7 +120,7 @@ These accounts were added manually to the system. They all use the same password
 
 ---
 
-## 🧪 Testing Guide for Lecturers
+##  Testing Guide for Lecturers
 
 To make testing the system as smooth as possible, follow this recommended testing flow:
 
