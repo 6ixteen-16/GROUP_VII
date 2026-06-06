@@ -13,16 +13,16 @@ User = get_user_model()
 PASSWORD = 'Pass@1234'
 
 students = [
-    ('aisha.nakato',     'Aisha',     'Nakato',     '22/U/0002'),
-    ('brian.otieno',     'Brian',     'Otieno',     '22/U/0003'),
-    ('cynthia.namukasa', 'Cynthia',   'Namukasa',   '22/U/0004'),
-    ('david.mugisha',    'David',     'Mugisha',    '22/U/0005'),
-    ('esther.atim',      'Esther',    'Atim',       '22/U/0006'),
-    ('frank.ssemakula',  'Frank',     'Ssemakula',  '22/U/0007'),
-    ('grace.apio',       'Grace',     'Apio',       '22/U/0008'),
-    ('henry.kato',       'Henry',     'Kato',       '22/U/0009'),
-    ('irene.nankunda',   'Irene',     'Nankunda',   '22/U/0010'),
-    ('joel.byarugaba',   'Joel',      'Byarugaba',  '22/U/0011'),
+    ('aisha.nakato',     'Aisha',     'Nakato',     '22/U/0002/PS'),
+    ('brian.otieno',     'Brian',     'Otieno',     '22/U/0003/PS'),
+    ('cynthia.namukasa', 'Cynthia',   'Namukasa',   '22/U/0004/PSA'),
+    ('david.mugisha',    'David',     'Mugisha',    '22/U/0005/PSA'),
+    ('esther.atim',      'Esther',    'Atim',       '22/U/0006/PS'),
+    ('frank.ssemakula',  'Frank',     'Ssemakula',  '22/U/0007/PS'),
+    ('grace.apio',       'Grace',     'Apio',       '22/U/0008/PSA'),
+    ('henry.kato',       'Henry',     'Kato',       '22/U/0009/PSA'),
+    ('irene.nankunda',   'Irene',     'Nankunda',   '22/U/0010/PSA'),
+    ('joel.byarugaba',   'Joel',      'Byarugaba',  '22/U/0011/PS'),
 ]
 
 workplace_supervisors = [
