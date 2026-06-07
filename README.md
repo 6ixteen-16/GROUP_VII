@@ -84,19 +84,7 @@ npm run dev
 ---
 
 ## Login Credentials
-
-### Default Seed Accounts
-These accounts are automatically created when you run `python seed.py`.
-
-| Role | Username | Password |
-|---|---|---|
-| **System Admin** | `admin` | `Admin@1234!` |
-| **Student** | `student1` | `Demo@1234!` |
-| **Workplace Supervisor** | `wpsupervisor1` | `Demo@1234!` |
-| **Academic Supervisor** | `acsupervisor1` | `Demo@1234!` |
-
-### Additional Test Accounts
-These accounts were added manually to the system. They all use the same password: **`Pass@1234`**
+They all use the same password: **`Pass@1234`**
 
 **Students:**
 - `aisha.nakato`
